@@ -61,42 +61,58 @@ export async function generateMetadata({
 export default async function RecipeDetailPage({ params }: PageProps) {
   const supabase = createServerSupabaseClient()
 
-  const { data: raw } = await supabase
+  const { data: recipeData, error: recipeErr } = await supabase
     .from('recipes')
-    .select(
-      `*,
-       author:profiles!author_id(id, username, display_name, avatar_url),
-       category:categories!category_id(id, name, slug, icon),
-       recipe_tags(tag:tags(id, name, slug)),
-       ingredients(*),
-       steps(*),
-       ratings(*, user:profiles!user_id(id, username, display_name, avatar_url))`
-    )
+    .select('*')
     .eq('slug', params.slug)
     .eq('is_published', true)
     .single()
 
-  if (!raw) notFound()
+  if (!recipeData) notFound()
 
-  const rawRecord = raw as Record<string, unknown> & {
-    recipe_tags?: { tag: { id: number; name: string; slug: string } }[]
-    ingredients?: Ingredient[]
-    steps?: Step[]
-    ratings?: RatingWithUser[]
-  }
+  const { data: authorData } = await supabase
+    .from('profiles')
+    .select('id, username, display_name, avatar_url')
+    .eq('id', recipeData.author_id)
+    .single()
+
+  const { data: categoryData } = await supabase
+    .from('categories')
+    .select('id, name, slug, icon')
+    .eq('id', recipeData.category_id ?? 0)
+    .maybeSingle()
+
+  const { data: ingredientsData } = await supabase
+    .from('ingredients')
+    .select('*')
+    .eq('recipe_id', recipeData.id)
+    .order('sort_order')
+
+  const { data: stepsData } = await supabase
+    .from('steps')
+    .select('*')
+    .eq('recipe_id', recipeData.id)
+    .order('step_number')
+
+  const { data: tagsData } = await supabase
+    .from('recipe_tags')
+    .select('tag:tags(id, name, slug)')
+    .eq('recipe_id', recipeData.id)
+
+  const { data: ratingsData } = await supabase
+    .from('ratings')
+    .select('*, user:profiles!user_id(id, username, display_name, avatar_url)')
+    .eq('recipe_id', recipeData.id)
+    .order('created_at', { ascending: false })
 
   const recipe = {
-    ...raw,
-    tags: rawRecord.recipe_tags?.map((rt) => rt.tag) ?? [],
-    ingredients:
-      rawRecord.ingredients?.sort(
-        (a, b) => a.sort_order - b.sort_order
-      ) ?? [],
-    steps:
-      rawRecord.steps?.sort(
-        (a, b) => a.step_number - b.step_number
-      ) ?? [],
-    ratings: rawRecord.ratings ?? [],
+    ...recipeData,
+    author: authorData ?? { id: '', username: 'unbekannt', display_name: '', avatar_url: null },
+    category: categoryData ?? null,
+    tags: tagsData?.map((rt: { tag: { id: number; name: string; slug: string } }) => rt.tag) ?? [],
+    ingredients: ingredientsData ?? [],
+    steps: stepsData ?? [],
+    ratings: ratingsData ?? [],
   } as unknown as RecipeDetailData
 
   const authorName =
