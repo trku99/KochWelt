@@ -49,7 +49,15 @@ export default function RegisterPage() {
           }),
         })
 
-        const data = await res.json()
+        let data: { error?: string; user?: unknown; session?: unknown }
+        try {
+          data = await res.json()
+        } catch {
+          const text = await res.text()
+          setError('Server-Antwort: ' + text.substring(0, 100))
+          setLoading(false)
+          return
+        }
 
         if (!res.ok) {
           setError(data.error || 'Registrierung fehlgeschlagen')
