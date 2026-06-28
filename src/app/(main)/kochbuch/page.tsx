@@ -41,9 +41,20 @@ export default function KochbuchPage() {
           .in('id', savedIds)
           .eq('is_published', true)
 
-        const recipeMap = new Map(
-          (recipesData ?? []).map((r: RecipeCardData) => [r.id, r] as const)
-        )
+        const mapped = (recipesData ?? []).map((r: Record<string, unknown>) => ({
+          id: r.id as number,
+          title: r.title as string,
+          slug: r.slug as string,
+          image_url: r.image_url as string | null,
+          difficulty: r.difficulty as string,
+          prep_time_minutes: r.prep_time_minutes as number,
+          avg_rating: r.avg_rating as number | null,
+          rating_count: r.rating_count as number | null,
+          author: (Array.isArray(r.author) ? r.author[0] : r.author) as RecipeCardData['author'],
+          category: (Array.isArray(r.category) ? r.category[0] : r.category) as RecipeCardData['category'],
+        })) as RecipeCardData[]
+
+        const recipeMap = new Map(mapped.map((r: RecipeCardData) => [r.id, r] as const))
         setRecipes(
           savedIds
             .map((id: number) => recipeMap.get(id))
