@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, setAuthCookie } from '@/lib/supabase/client'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -71,6 +71,7 @@ export default function RegisterPage() {
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           })
+          setAuthCookie(data.session)
         }
 
         router.push('/')

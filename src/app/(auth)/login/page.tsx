@@ -3,7 +3,7 @@
 import { useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, setAuthCookie } from '@/lib/supabase/client'
 
 function LoginForm() {
   const [email, setEmail] = useState('')
@@ -48,6 +48,7 @@ function LoginForm() {
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
           })
+          setAuthCookie(data.session)
         }
 
         const redirect = searchParams.get('redirect') || '/'

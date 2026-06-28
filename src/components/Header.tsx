@@ -4,9 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, clearAuthCookie } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
+
 export default function Header() {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<{ avatar_url: string | null; display_name: string | null } | null>(null)
@@ -58,9 +59,11 @@ export default function Header() {
   const handleLogout = useCallback(async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
+    clearAuthCookie()
     setDropdownOpen(false)
     setMobileMenuOpen(false)
     router.push('/')
+    router.refresh()
   }, [router])
 
   const navLinks = [

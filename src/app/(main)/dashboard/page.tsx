@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { createClient } from '@/lib/supabase/client'
+import { createClient, clearAuthCookie } from '@/lib/supabase/client'
+
 import { cn } from '@/lib/utils'
 import type { Difficulty } from '@/types/database'
-
 interface RecipeListItem {
   id: number
   title: string
