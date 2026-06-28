@@ -38,46 +38,36 @@ export default function RegisterPage() {
       setLoading(true)
 
       try {
-        const supabase = createClient()
-
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
+        const res = await fetch('/api/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            username: username.trim(),
+            displayName: displayName.trim(),
+          }),
         })
 
-        if (signUpError) {
-          console.error('Signup error:', signUpError)
-          setError('Registrierung fehlgeschlagen: ' + (signUpError.message || JSON.stringify(signUpError)))
+        const data = await res.json()
+
+        if (!res.ok) {
+          setError(data.error || 'Registrierung fehlgeschlagen')
           setLoading(false)
           return
         }
 
-        console.log('Signup success:', authData)
-
-        const user = authData.user
-        if (!user) {
-          setError('Registrierung fehlgeschlagen – bitte E-Mail bestätigen oder erneut versuchen')
-          setLoading(false)
-          return
-        }
-
-        const { error: profileError } = await supabase.from('profiles').insert({
-          id: user.id,
-          username: username.trim(),
-          display_name: displayName.trim() || null,
-        })
-
-        if (profileError) {
-          console.error('Profile error:', profileError)
-          setError(profileError.message || JSON.stringify(profileError))
-          setLoading(false)
-          return
+        if (data.session) {
+          const supabase = createClient()
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          })
         }
 
         router.push('/')
         router.refresh()
-      } catch (err: unknown) {
-        console.error('Unexpected error:', err)
+      } catch (err) {
         setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist aufgetreten')
         setLoading(false)
       }
