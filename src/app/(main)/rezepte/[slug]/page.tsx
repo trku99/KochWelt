@@ -109,11 +109,14 @@ export default async function RecipeDetailPage({ params }: PageProps) {
     ...recipeData,
     author: authorData ?? { id: '', username: 'unbekannt', display_name: '', avatar_url: null },
     category: categoryData ?? null,
-    tags: tagsData?.map((rt: { tag: { id: number; name: string; slug: string } }) => rt.tag) ?? [],
-    ingredients: ingredientsData ?? [],
-    steps: stepsData ?? [],
-    ratings: ratingsData ?? [],
-  } as unknown as RecipeDetailData
+    tags: ((tagsData ?? []) as unknown[])?.map((rt: unknown) => {
+      const row = rt as { tag: { id: number; name: string; slug: string } | { id: number; name: string; slug: string }[] }
+      return Array.isArray(row.tag) ? row.tag[0] : row.tag
+    }) ?? [],
+    ingredients: (ingredientsData ?? []) as unknown as RecipeDetailData['ingredients'],
+    steps: (stepsData ?? []) as unknown as RecipeDetailData['steps'],
+    ratings: (ratingsData ?? []) as unknown as RecipeDetailData['ratings'],
+  } as RecipeDetailData
 
   const authorName =
     recipe.author.display_name || recipe.author.username
