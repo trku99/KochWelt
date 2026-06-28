@@ -61,7 +61,7 @@ export async function generateMetadata({
 export default async function RecipeDetailPage({ params }: PageProps) {
   const supabase = createServerSupabaseClient()
 
-  const { data: recipeData, error: recipeErr } = await supabase
+  const { data: recipeData } = await supabase
     .from('recipes')
     .select('*')
     .eq('slug', params.slug)
