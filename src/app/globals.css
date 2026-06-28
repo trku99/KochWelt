@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #FDF8F3;
+  --foreground: #1A1A1A;
+  --primary: #E8521A;
+  --secondary: #F5A623;
+  --brand-light: #FDF8F3;
+  --brand-dark: #1A1A1A;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Playfair Display", Georgia, serif;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-card shadow-card transition-all duration-200;
+  }
+
+  .card-hover {
+    @apply hover:shadow-card-hover hover:animate-card-lift;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white px-6 py-2 rounded-lg font-medium
+           hover:bg-primary-600 transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white px-6 py-2 rounded-lg font-medium
+           hover:bg-secondary-600 transition-colors duration-200;
+  }
+
+  .section-title {
+    @apply font-serif text-3xl md:text-4xl font-bold text-brand-dark;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-warm {
+    color: var(--primary);
+  }
+
+  .bg-warm {
+    background-color: var(--brand-light);
+  }
+}
