@@ -49,7 +49,7 @@ export default function RegisterPage() {
           }),
         })
 
-        let data: { error?: string; user?: unknown; session?: unknown }
+        let data: { error?: string; user?: unknown; session?: { access_token: string; refresh_token: string } }
         try {
           data = await res.json()
         } catch {
