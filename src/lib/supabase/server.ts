@@ -1,43 +1,16 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
-let cachedCookieStore: ReturnType<typeof cookies> | null = null
-
-function getCookieStore() {
-  if (!cachedCookieStore) {
-    cachedCookieStore = cookies()
-  }
-  return cachedCookieStore
-}
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export function createServerSupabaseClient() {
-  const cookieStore = getCookieStore()
-
-  return createServerClient(
+  return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch {}
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch {}
-        },
-      },
-    }
+    { auth: { persistSession: false } }
   )
 }
 
 export async function getCurrentUser() {
   const supabase = createServerSupabaseClient()
+  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
