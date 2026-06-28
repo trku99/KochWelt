@@ -37,39 +37,49 @@ export default function RegisterPage() {
 
       setLoading(true)
 
-      const supabase = createClient()
+      try {
+        const supabase = createClient()
 
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-      })
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { emailRedirectTo: 'https://koch-welt.vercel.app/login' }
+        })
 
-      if (signUpError) {
-        setError(signUpError.message)
+        if (signUpError) {
+          console.error('Signup error:', signUpError)
+          setError(signUpError.message || JSON.stringify(signUpError))
+          setLoading(false)
+          return
+        }
+
+        const user = authData.user
+        if (!user) {
+          setError('Registrierung fehlgeschlagen – bitte E-Mail bestätigen oder erneut versuchen')
+          setLoading(false)
+          return
+        }
+
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: user.id,
+          username: username.trim(),
+          display_name: displayName.trim() || null,
+        })
+
+        if (profileError) {
+          console.error('Profile error:', profileError)
+          setError(profileError.message || JSON.stringify(profileError))
+          setLoading(false)
+          return
+        }
+
+        router.push('/')
+        router.refresh()
+      } catch (err: unknown) {
+        console.error('Unexpected error:', err)
+        setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist aufgetreten')
         setLoading(false)
-        return
       }
-
-      const user = authData.user
-      if (!user) {
-        setError('Registrierung fehlgeschlagen')
-        setLoading(false)
-        return
-      }
-
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: user.id,
-        username: username.trim(),
-        display_name: displayName.trim() || null,
-      })
-
-      if (profileError) {
-        setError(profileError.message)
-        setLoading(false)
-        return
-      }
-
-      router.push('/')
     },
     [username, displayName, email, password, confirmPassword, router]
   )
