@@ -36,14 +36,14 @@ INSERT INTO profiles (id, username, display_name, bio) VALUES
 -- Recipes
 INSERT INTO recipes (title, slug, description, author_id, category_id, difficulty, prep_time_minutes, cook_time_minutes, servings, image_url, is_published, view_count, avg_rating, rating_count)
 VALUES
-  ('Zürcher Geschnetzeltes', 'zuerich-geschnetzeltes', 'Das klassische Zürcher Geschnetzeltes mit Kalbfleisch in einer cremigen Weisswein-Sauce.', '00000000-0000-0000-0000-000000000001', 3, 'Mittel', 20, 25, 4, NULL, true, 152, 4.5, 12),
-  ('Rösti', 'roesti', 'Knusprige Schweizer Rösti – goldbraun und perfekt als Beilage oder Hauptgericht.', '00000000-0000-0000-0000-000000000001', 4, 'Einfach', 15, 30, 4, NULL, true, 234, 4.8, 18),
-  ('Basler Mehlsuppe', 'basler-mehlsuppe', 'Eine traditionelle Basler Mehlsuppe – herzhaft und wärmend.', '00000000-0000-0000-0000-000000000001', 2, 'Einfach', 10, 30, 4, NULL, true, 89, 4.2, 7),
-  ('Cheese Fondue', 'cheese-fondue', 'Das ultimative Schweizer Fondue mit einer Mischung aus Greyerzer und Vacherin.', '00000000-0000-0000-0000-000000000001', 3, 'Mittel', 15, 20, 4, NULL, true, 312, 4.9, 25),
-  ('Nüsslisalat mit Birnen', 'nuesslisalat-mit-birnen', 'Feldsalat mit reifen Birnen, Walnüssen und einem leichten Senf-Dressing.', '00000000-0000-0000-0000-000000000001', 7, 'Einfach', 15, 0, 2, NULL, true, 67, 4.3, 9),
-  ('Schokoladenkuchen', 'schokoladenkuchen', 'Saftiger Schokoladenkuchen mit flüssigem Kern – ein Genuss für jede Gelegenheit.', '00000000-0000-0000-0000-000000000001', 6, 'Mittel', 25, 35, 8, NULL, true, 195, 4.7, 21),
-  ('Bündner Gerstensuppe', 'buendner-gerstensuppe', 'Herzhafte Gerstensuppe nach Bündner Art mit Rauchfleisch und Gemüse.', '00000000-0000-0000-0000-000000000001', 2, 'Schwer', 20, 90, 6, NULL, true, 78, 4.6, 11),
-  ('Apfelstrudel', 'apfelstrudel', 'Klassischer Apfelstrudel mit dünnem Teig, Zimt und Rosinen – warm serviert.', '00000000-0000-0000-0000-000000000001', 5, 'Schwer', 40, 45, 8, NULL, true, 143, 4.4, 15);
+  ('Zürcher Geschnetzeltes', 'zuerich-geschnetzeltes', 'Das klassische Zürcher Geschnetzeltes mit Kalbfleisch in einer cremigen Weisswein-Sauce.', '00000000-0000-0000-0000-000000000001', 3, 'Mittel', 20, 25, 4, 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&h=600&fit=crop', true, 152, 4.5, 12),
+  ('Rösti', 'roesti', 'Knusprige Schweizer Rösti – goldbraun und perfekt als Beilage oder Hauptgericht.', '00000000-0000-0000-0000-000000000001', 4, 'Einfach', 15, 30, 4, 'https://images.unsplash.com/photo-1585805454210-9a0a5f0d7cf0?w=800&h=600&fit=crop', true, 234, 4.8, 18),
+  ('Basler Mehlsuppe', 'basler-mehlsuppe', 'Eine traditionelle Basler Mehlsuppe – herzhaft und wärmend.', '00000000-0000-0000-0000-000000000001', 2, 'Einfach', 10, 30, 4, 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&h=600&fit=crop', true, 89, 4.2, 7),
+  ('Cheese Fondue', 'cheese-fondue', 'Das ultimative Schweizer Fondue mit einer Mischung aus Greyerzer und Vacherin.', '00000000-0000-0000-0000-000000000001', 3, 'Mittel', 15, 20, 4, 'https://images.unsplash.com/photo-1529699211955-1fa20b50c0fb?w=800&h=600&fit=crop', true, 312, 4.9, 25),
+  ('Nüsslisalat mit Birnen', 'nuesslisalat-mit-birnen', 'Feldsalat mit reifen Birnen, Walnüssen und einem leichten Senf-Dressing.', '00000000-0000-0000-0000-000000000001', 7, 'Einfach', 15, 0, 2, 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&h=600&fit=crop', true, 67, 4.3, 9),
+  ('Schokoladenkuchen', 'schokoladenkuchen', 'Saftiger Schokoladenkuchen mit flüssigem Kern – ein Genuss für jede Gelegenheit.', '00000000-0000-0000-0000-000000000001', 6, 'Mittel', 25, 35, 8, 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&h=600&fit=crop', true, 195, 4.7, 21),
+  ('Bündner Gerstensuppe', 'buendner-gerstensuppe', 'Herzhafte Gerstensuppe nach Bündner Art mit Rauchfleisch und Gemüse.', '00000000-0000-0000-0000-000000000001', 2, 'Schwer', 20, 90, 6, 'https://images.unsplash.com/photo-1604762525433-1112e71ab29a?w=800&h=600&fit=crop', true, 78, 4.6, 11),
+  ('Apfelstrudel', 'apfelstrudel', 'Klassischer Apfelstrudel mit dünnem Teig, Zimt und Rosinen – warm serviert.', '00000000-0000-0000-0000-000000000001', 5, 'Schwer', 40, 45, 8, 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=800&h=600&fit=crop', true, 143, 4.4, 15);
 
 -- Ingredients for each recipe
 -- Recipe 1: Zürcher Geschnetzeltes
