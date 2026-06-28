@@ -20,22 +20,43 @@ function LoginForm() {
       setError(null)
       setLoading(true)
 
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
 
-      if (authError) {
-        setError(authError.message === 'Invalid login credentials'
-          ? 'Ungültige Anmeldedaten'
-          : authError.message)
+        let data: { error?: string; session?: { access_token: string; refresh_token: string } }
+        try {
+          data = await res.json()
+        } catch {
+          const text = await res.text()
+          setError('Server-Antwort: ' + text.substring(0, 100))
+          setLoading(false)
+          return
+        }
+
+        if (!res.ok) {
+          setError(data.error || 'Anmeldung fehlgeschlagen')
+          setLoading(false)
+          return
+        }
+
+        if (data.session) {
+          await supabase.auth.setSession({
+            access_token: data.session.access_token,
+            refresh_token: data.session.refresh_token,
+          })
+        }
+
+        const redirect = searchParams.get('redirect') || '/'
+        router.push(redirect)
+        router.refresh()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ein unerwarteter Fehler ist aufgetreten')
         setLoading(false)
-        return
       }
-
-      const redirect = searchParams.get('redirect') || '/'
-      router.push(redirect)
-      router.refresh()
     },
     [email, password, router, searchParams, supabase]
   )
