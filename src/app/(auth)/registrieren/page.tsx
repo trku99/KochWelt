@@ -43,15 +43,16 @@ export default function RegisterPage() {
         const { data: authData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: 'https://koch-welt.vercel.app/login' }
         })
 
         if (signUpError) {
           console.error('Signup error:', signUpError)
-          setError(signUpError.message || JSON.stringify(signUpError))
+          setError('Registrierung fehlgeschlagen: ' + (signUpError.message || JSON.stringify(signUpError)))
           setLoading(false)
           return
         }
+
+        console.log('Signup success:', authData)
 
         const user = authData.user
         if (!user) {
