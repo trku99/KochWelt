@@ -10,7 +10,6 @@ export function createServerSupabaseClient() {
 
 export async function getCurrentUser() {
   const supabase = createServerSupabaseClient()
-  const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/user`
   const { data: { user } } = await supabase.auth.getUser()
   return user
 }
