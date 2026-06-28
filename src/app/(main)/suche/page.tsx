@@ -15,56 +15,55 @@ function SearchContent() {
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const supabase = createClient()
+  const supabaseRef = useRef(createClient())
+  const fetchRef = useRef<(term: string) => Promise<void>>()
 
-  const fetchResults = useCallback(
-    async (searchTerm: string) => {
-      if (!searchTerm.trim()) {
-        setResults([])
-        setHasSearched(false)
-        return
-      }
+  fetchRef.current = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setResults([])
+      setHasSearched(false)
+      return
+    }
 
-      setLoading(true)
-      setHasSearched(true)
+    setLoading(true)
+    setHasSearched(true)
 
-      const { data: textSearchData } = await supabase
-        .from('recipes')
-        .select(
-          `id, title, slug, image_url, difficulty, prep_time_minutes, avg_rating, rating_count,
-           author:profiles!author_id(id, username, display_name, avatar_url),
-           category:categories!category_id(id, name, slug, icon)`
-        )
-        .eq('is_published', true)
-        .textSearch('search_vector', searchTerm, { config: 'german' })
-        .limit(20)
+    const supabase = supabaseRef.current
+    const { data: textSearchData } = await supabase
+      .from('recipes')
+      .select(
+        `id, title, slug, image_url, difficulty, prep_time_minutes, avg_rating, rating_count,
+         author:profiles!author_id(id, username, display_name, avatar_url),
+         category:categories!category_id(id, name, slug, icon)`
+      )
+      .eq('is_published', true)
+      .textSearch('search_vector', searchTerm, { config: 'german' })
+      .limit(20)
 
-      if (textSearchData && textSearchData.length > 0) {
-        setResults(textSearchData as unknown as RecipeCardData[])
-        setLoading(false)
-        return
-      }
-
-      const { data: ilikeData } = await supabase
-        .from('recipes')
-        .select(
-          `id, title, slug, image_url, difficulty, prep_time_minutes, avg_rating, rating_count,
-           author:profiles!author_id(id, username, display_name, avatar_url),
-           category:categories!category_id(id, name, slug, icon)`
-        )
-        .eq('is_published', true)
-        .ilike('title', `%${searchTerm}%`)
-        .limit(20)
-
-      setResults((ilikeData ?? []) as unknown as RecipeCardData[])
+    if (textSearchData && textSearchData.length > 0) {
+      setResults(textSearchData as unknown as RecipeCardData[])
       setLoading(false)
-    },
-    [supabase]
-  )
+      return
+    }
+
+    const { data: ilikeData } = await supabase
+      .from('recipes')
+      .select(
+        `id, title, slug, image_url, difficulty, prep_time_minutes, avg_rating, rating_count,
+         author:profiles!author_id(id, username, display_name, avatar_url),
+         category:categories!category_id(id, name, slug, icon)`
+      )
+      .eq('is_published', true)
+      .ilike('title', `%${searchTerm}%`)
+      .limit(20)
+
+    setResults((ilikeData ?? []) as unknown as RecipeCardData[])
+    setLoading(false)
+  }
 
   useEffect(() => {
-    if (initialQuery) {
-      fetchResults(initialQuery)
+    if (initialQuery && fetchRef.current) {
+      fetchRef.current(initialQuery)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -75,7 +74,7 @@ function SearchContent() {
 
     debounceRef.current = setTimeout(() => {
       setQuery(inputValue)
-      fetchResults(inputValue)
+      fetchRef.current?.(inputValue)
     }, 300)
 
     return () => {
@@ -83,7 +82,7 @@ function SearchContent() {
         clearTimeout(debounceRef.current)
       }
     }
-  }, [inputValue, fetchResults])
+  }, [inputValue])
 
   return (
     <div className="min-h-screen bg-background">
