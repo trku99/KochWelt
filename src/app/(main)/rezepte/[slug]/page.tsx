@@ -218,6 +218,10 @@ export default async function RecipeDetailPage({ params }: PageProps) {
           initialAvgRating={recipe.avg_rating}
           initialRatingCount={recipe.rating_count}
           ratings={recipe.ratings}
+          calories={recipe.calories}
+          proteinG={recipe.protein_g}
+          carbsG={recipe.carbs_g}
+          fatG={recipe.fat_g}
         />
 
         {recipe.tags.length > 0 && (

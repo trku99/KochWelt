@@ -64,9 +64,9 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   const [isSaved, setIsSaved] = useState(false)
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [imageError, setImageError] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
+    const supabase = createClient()
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
@@ -81,12 +81,13 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       }
     }
     checkAuth()
-  }, [recipe.id, supabase])
+  }, [recipe.id])
 
   const toggleSave = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (!user) return
+    const supabase = createClient()
     if (isSaved) {
       await supabase
         .from('saved_recipes')
@@ -107,7 +108,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
   return (
     <Link
       href={`/rezepte/${recipe.slug}`}
-      className="block rounded-2xl bg-white shadow-card overflow-hidden card-hover group"
+      className="block rounded-2xl bg-white dark:bg-gray-800 shadow-card dark:shadow-gray-800 overflow-hidden card-hover group"
     >
       <div className="relative aspect-[3/2] overflow-hidden">
         {hasImage ? (
@@ -123,7 +124,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
         )}
 
         {recipe.category && (
-          <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-800 px-2.5 py-1 rounded-full">
+          <span className="absolute top-3 left-3 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-xs font-medium text-gray-800 dark:text-gray-200 px-2.5 py-1 rounded-full">
             {recipe.category.icon} {recipe.category.name}
           </span>
         )}
@@ -134,7 +135,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
             'absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all',
             isSaved
               ? 'bg-primary text-white shadow-md'
-              : 'bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-white hover:text-primary'
+              : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-500 hover:bg-white dark:hover:bg-gray-700 hover:text-primary'
           )}
           aria-label={isSaved ? 'Entfernen' : 'Speichern'}
         >
@@ -155,7 +156,7 @@ export default function RecipeCard({ recipe }: RecipeCardProps) {
       </div>
 
       <div className="p-4">
-        <h3 className="font-serif text-lg font-bold text-brand-dark leading-tight line-clamp-2">
+        <h3 className="font-serif text-lg font-bold text-brand-dark dark:text-gray-100 leading-tight line-clamp-2">
           {recipe.title}
         </h3>
 

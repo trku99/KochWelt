@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import ServingCalculator from '@/components/ServingCalculator'
@@ -31,6 +33,10 @@ interface RecipeContentProps {
   initialAvgRating: number | null
   initialRatingCount: number | null
   ratings: RatingWithUser[]
+  calories: number | null
+  proteinG: number | null
+  carbsG: number | null
+  fatG: number | null
 }
 
 const difficultyColors: Record<Difficulty, string> = {
@@ -51,7 +57,12 @@ export default function RecipeContent({
   initialAvgRating,
   initialRatingCount,
   ratings,
+  calories,
+  proteinG,
+  carbsG,
+  fatG,
 }: RecipeContentProps) {
+  const pathname = usePathname()
   const [currentServings, setCurrentServings] = useState(servings)
   const [user, setUser] = useState<{ id: string } | null>(null)
   const [isSaved, setIsSaved] = useState(false)
@@ -130,6 +141,30 @@ export default function RecipeContent({
           </div>
         </div>
 
+        {calories != null && (
+          <div className="bg-white rounded-2xl p-5 shadow-card">
+            <h3 className="font-serif text-xl font-bold mb-4">Nährwerte pro Portion</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 bg-primary-50 rounded-xl text-center">
+                <div className="text-lg font-bold text-primary">{calories}</div>
+                <div className="text-xs text-gray-500">Kalorien</div>
+              </div>
+              <div className="p-3 bg-blue-50 rounded-xl text-center">
+                <div className="text-lg font-bold text-blue-600">{proteinG ?? '—'}</div>
+                <div className="text-xs text-gray-500">Eiweiß (g)</div>
+              </div>
+              <div className="p-3 bg-amber-50 rounded-xl text-center">
+                <div className="text-lg font-bold text-amber-600">{carbsG ?? '—'}</div>
+                <div className="text-xs text-gray-500">Kohlenhydrate (g)</div>
+              </div>
+              <div className="p-3 bg-rose-50 rounded-xl text-center">
+                <div className="text-lg font-bold text-rose-600">{fatG ?? '—'}</div>
+                <div className="text-xs text-gray-500">Fett (g)</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="lg:col-span-2 space-y-8">
           <div className="flex flex-wrap items-center gap-4">
             <span
@@ -198,6 +233,21 @@ export default function RecipeContent({
 
       <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
+          <button onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-gray-600 border border-gray-200 hover:border-primary hover:text-primary transition-all print:hidden"
+            aria-label="Drucken">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Drucken
+          </button>
+          <Link href={`${pathname}/pdf`} target="_blank"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-gray-600 border border-gray-200 hover:border-primary hover:text-primary transition-all print:hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+            </svg>
+            PDF
+          </Link>
           <button
             onClick={toggleSave}
             className={cn(

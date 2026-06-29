@@ -42,6 +42,10 @@ export interface Recipe {
   created_at: string
   avg_rating: number | null
   rating_count: number | null
+  calories: number | null
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
 }
 
 export interface Ingredient {

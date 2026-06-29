@@ -12,7 +12,6 @@ function LoginForm() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -44,6 +43,7 @@ function LoginForm() {
         }
 
         if (data.session) {
+          const supabase = createClient()
           await supabase.auth.setSession({
             access_token: data.session.access_token,
             refresh_token: data.session.refresh_token,
@@ -59,7 +59,7 @@ function LoginForm() {
         setLoading(false)
       }
     },
-    [email, password, router, searchParams, supabase]
+    [email, password, router, searchParams]
   )
 
   return (
@@ -108,6 +108,11 @@ function LoginForm() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
               placeholder="••••••••"
             />
+            <div className="text-right mt-1">
+              <Link href="/passwort-vergessen" className="text-xs text-gray-400 hover:text-primary transition-colors">
+                Passwort vergessen?
+              </Link>
+            </div>
           </div>
 
           <button

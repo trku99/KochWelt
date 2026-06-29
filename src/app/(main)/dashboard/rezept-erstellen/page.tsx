@@ -8,6 +8,14 @@ import { generateSlug, cn } from '@/lib/utils'
 import ImageUpload from '@/components/ImageUpload'
 import type { Difficulty, Category, Tag } from '@/types/database'
 
+interface ImportedIngredient { name: string; amount: number | null; unit: string | null }
+interface ImportedData {
+  title: string; description: string; image_url: string | null
+  prep_time_minutes: number; cook_time_minutes: number; servings: number
+  difficulty: string; category: string | null
+  ingredients: ImportedIngredient[]; steps: { instruction: string }[]; tags: string[]
+}
+
 const units = ['g', 'ml', 'TL', 'EL', 'Stück'] as const
 const difficulties: { value: Difficulty; label: string }[] = [
   { value: 'Einfach', label: 'Einfach' },
@@ -40,6 +48,10 @@ interface FormData {
   steps: StepRow[]
   image_url: string | null
   tag_ids: number[]
+  calories: number | null
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
 }
 
 const initialForm: FormData = {
@@ -54,6 +66,10 @@ const initialForm: FormData = {
   steps: [],
   image_url: null,
   tag_ids: [],
+  calories: null,
+  protein_g: null,
+  carbs_g: null,
+  fat_g: null,
 }
 
 let tempIdCounter = 0
@@ -66,8 +82,6 @@ const stepLabels = ['Basis', 'Zutaten', 'Schritte', 'Bild & Tags']
 function RecipeForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
-
   const editId = searchParams.get('id')
   const isEditing = !!editId
 
@@ -79,8 +93,13 @@ function RecipeForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loadingEdit, setLoadingEdit] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [showImport, setShowImport] = useState(false)
 
   useEffect(() => {
+    const supabase = createClient()
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
@@ -143,13 +162,17 @@ function RecipeForm() {
                 })),
             image_url: (r.image_url as string | null) ?? null,
             tag_ids: (r.recipe_tags ?? []).map((rt: { tag_id: number }) => rt.tag_id),
+            calories: (r.calories as number | null) ?? null,
+            protein_g: (r.protein_g as number | null) ?? null,
+            carbs_g: (r.carbs_g as number | null) ?? null,
+            fat_g: (r.fat_g as number | null) ?? null,
           })
         }
         setLoadingEdit(false)
       }
     }
     init()
-  }, [router, supabase, editId])
+  }, [router, editId])
 
   const updateField = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }))
@@ -251,6 +274,7 @@ function RecipeForm() {
 
   const handleSubmit = useCallback(async () => {
     if (!user) return
+    const supabase = createClient()
     setSubmitting(true)
     setError(null)
 
@@ -267,6 +291,10 @@ function RecipeForm() {
       servings: formData.servings,
       image_url: formData.image_url,
       is_published: true,
+      calories: formData.calories,
+      protein_g: formData.protein_g,
+      carbs_g: formData.carbs_g,
+      fat_g: formData.fat_g,
     }
 
     try {
@@ -376,7 +404,39 @@ function RecipeForm() {
     } finally {
       setSubmitting(false)
     }
-  }, [user, formData, isEditing, editId, supabase, router])
+  }, [user, formData, isEditing, editId, router])
+
+  const handleImport = useCallback(async () => {
+    if (!importUrl.trim()) return
+    setImporting(true)
+    setImportError(null)
+    try {
+      const res = await fetch('/api/import-recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl.trim() }),
+      })
+      const result = await res.json()
+      if (!res.ok) { setImportError(result.error || 'Import fehlgeschlagen'); return }
+
+      const d = result.data as ImportedData
+      setFormData(prev => ({
+        ...prev,
+        title: d.title || prev.title,
+        description: d.description || prev.description,
+        image_url: d.image_url || prev.image_url,
+        prep_time_minutes: d.prep_time_minutes || prev.prep_time_minutes,
+        cook_time_minutes: d.cook_time_minutes || prev.cook_time_minutes,
+        servings: d.servings || prev.servings,
+        difficulty: (['Einfach', 'Mittel', 'Schwer'].includes(d.difficulty) ? d.difficulty : prev.difficulty) as Difficulty,
+        ingredients: d.ingredients.map(i => ({ tempId: nextTempId(), name: i.name, amount: i.amount, unit: i.unit || 'Stück' })),
+        steps: d.steps.map(s => ({ tempId: nextTempId(), instruction: s.instruction, image_url: null })),
+      }))
+      setShowImport(false)
+      setImportUrl('')
+    } catch { setImportError('Fehler beim Import') }
+    finally { setImporting(false) }
+  }, [importUrl])
 
   if (loadingEdit) {
     return (
@@ -392,6 +452,35 @@ function RecipeForm() {
         <h1 className="font-serif text-3xl font-bold text-brand-dark mb-8">
           {isEditing ? 'Rezept bearbeiten' : 'Neues Rezept'}
         </h1>
+
+        {!isEditing && (
+          <div className="mb-8 p-4 bg-white rounded-xl border border-gray-200">
+            <button type="button" onClick={() => setShowImport(!showImport)}
+              className="flex items-center gap-2 text-sm font-medium text-primary hover:text-primary-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Von URL importieren
+            </button>
+            {showImport && (
+              <div className="mt-4 space-y-3">
+                <p className="text-xs text-gray-500">Füge eine Rezept-URL ein (z. B. von chefkoch.de)</p>
+                <div className="flex gap-2">
+                  <input type="url" value={importUrl} onChange={e => setImportUrl(e.target.value)}
+                    placeholder="https://www.chefkoch.de/rezepte/..."
+                    className="flex-1 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                  <button type="button" onClick={handleImport} disabled={importing || !importUrl.trim()}
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-600 disabled:opacity-50 transition-colors">
+                    {importing ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : 'Importieren'}
+                  </button>
+                </div>
+                {importError && <p className="text-xs text-red-500">{importError}</p>}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-center gap-0 mb-10">
           {stepLabels.map((label, i) => (
@@ -808,6 +897,32 @@ function RecipeForm() {
                   })}
                 </div>
               )}
+            </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="font-serif text-xl font-bold text-brand-dark mb-4">Nährwerte (optional)</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Kalorien (kcal)</label>
+                  <input type="number" min={0} value={formData.calories ?? ''} onChange={e => updateField('calories', e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Eiweiß (g)</label>
+                  <input type="number" min={0} step={0.1} value={formData.protein_g ?? ''} onChange={e => updateField('protein_g', e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Kohlenhydrate (g)</label>
+                  <input type="number" min={0} step={0.1} value={formData.carbs_g ?? ''} onChange={e => updateField('carbs_g', e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">Fett (g)</label>
+                  <input type="number" min={0} step={0.1} value={formData.fat_g ?? ''} onChange={e => updateField('fat_g', e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary" />
+                </div>
+              </div>
             </div>
 
             <div className="border-t border-gray-200 pt-6">

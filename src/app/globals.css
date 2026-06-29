@@ -13,6 +13,13 @@
   --brand-dark: #1A1A1A;
 }
 
+.dark {
+  --background: #0f0f0f;
+  --foreground: #e5e5e5;
+  --brand-light: #1a1a1a;
+  --brand-dark: #f5f5f5;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -27,11 +34,11 @@ body {
 
 @layer components {
   .card {
-    @apply bg-white rounded-card shadow-card transition-all duration-200;
+    @apply bg-white dark:bg-gray-800 rounded-card shadow-card dark:shadow-gray-800 transition-all duration-200;
   }
 
   .card-hover {
-    @apply hover:shadow-card-hover hover:animate-card-lift;
+    @apply hover:shadow-card-hover dark:hover:shadow-gray-800 hover:animate-card-lift;
   }
 
   .btn-primary {
@@ -45,7 +52,7 @@ body {
   }
 
   .section-title {
-    @apply font-serif text-3xl md:text-4xl font-bold text-brand-dark;
+    @apply font-serif text-3xl md:text-4xl font-bold text-brand-dark dark:text-gray-100;
   }
 }
 
@@ -61,4 +68,12 @@ body {
   .bg-warm {
     background-color: var(--brand-light);
   }
+}
+
+@media print {
+  header, footer, nav, .print\:hidden { display: none !important; }
+  body { background: white; color: black; }
+  .max-w-7xl { max-width: 100% !important; padding: 0 !important; }
+  img { max-height: 300px; object-fit: contain; }
+  @page { margin: 1.5cm; }
 }
